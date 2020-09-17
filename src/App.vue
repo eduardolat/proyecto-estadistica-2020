@@ -10,10 +10,18 @@
         <b>Datos limpios</b>
         <br />
         {{ parsedDataArray }}
+        <br />
         <b>Datos ordenados</b>
         <br />
         {{ sortedDataArray }}
+        <br />
+        <b>Todos los datos</b>
+        <br />
+        <div v-for="number in fullStatistics" :key="number.number">
+          {{ number }}
+        </div>
       </span>
+      <br />&nbsp; <br />&nbsp; <br />&nbsp; <br />&nbsp;
     </v-container>
     <v-footer absolute>
       <span class="mx-auto text-center">
@@ -31,6 +39,13 @@
 </template>
 
 <script>
+import {
+  cleanDataset,
+  orderedDataset,
+  absoluteFrecuency,
+  totalData,
+  relativeFrecuency,
+} from "./ts/statistics.ts";
 export default {
   name: "app",
   data() {
@@ -63,24 +78,31 @@ export default {
       `;
     },
     parsedDataArray() {
-      return this.rawData
-        .split(/[\n\s,]+/)
-        .filter((n) => {
-          if (!!n.replace(/[^0-9]/g, "").length) {
-            return true;
-          }
-          return false;
-        })
-        .map((n) => {
-          return parseInt(n.replace(/[^0-9]/g, ""));
-        });
+      return cleanDataset(this.rawData);
     },
     sortedDataArray() {
-      return this.parsedDataArray
-        .filter((item, pos) => {
-          return this.parsedDataArray.indexOf(item) == pos;
-        })
-        .sort((a, b) => a - b);
+      return orderedDataset(this.rawData);
+    },
+    fullStatistics() {
+      let statistics = [];
+      let absoluteFrecAcc = 0;
+      let relativeFrecAcc = 0;
+
+      this.sortedDataArray.forEach((x) => {
+        let absoluteFrec = absoluteFrecuency(this.rawData, x);
+        let relativeFrec = relativeFrecuency(this.rawData, x);
+        absoluteFrecAcc += absoluteFrec;
+        relativeFrecAcc += relativeFrec;
+        statistics.push({
+          number: x,
+          absoluteFrecuency: absoluteFrec,
+          accumulatedAbsoluteFrecuency: absoluteFrecAcc,
+          relativeFrecuency: relativeFrec,
+          accumulatedRelativeFrecuency: relativeFrecAcc,
+        });
+      });
+
+      return statistics;
     },
   },
   created() {
