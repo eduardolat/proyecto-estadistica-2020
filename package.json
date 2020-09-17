@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "parcel index.html",
-    "build": "parcel build index.html"
+    "build": "parcel build index.html",
+    "build-github": "parcel build index.html --public-url https://eduardodevop.github.io/proyecto-estadistica-2020/"
   },
   "author": "",
   "license": "ISC",
