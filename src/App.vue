@@ -1,122 +1,145 @@
 <template>
   <v-app>
-    <v-container class="pt-8 pb-15">
-      <lottie-player
-        class="mx-auto mb-3"
-        src="https://assets7.lottiefiles.com/packages/lf20_fBCpuQ.json"
-        background="transparent"
-        speed="1"
-        style="width: 200px; height: 200px;"
-        loop
-        autoplay
-      ></lottie-player>
+    <v-main>
+      <v-container class="pt-8 pb-15">
+        <lottie-player
+          class="mx-auto mb-3"
+          src="./chart-lottie.json"
+          background="transparent"
+          speed="1"
+          style="width: 200px; height: 200px;"
+          loop
+          autoplay
+        ></lottie-player>
 
-      <h1 class="text-center mx-auto mb-4">Calculadora estadística</h1>
-      <p class="text-center mx-auto mb-6">
-        Ingresa el set de datos en el campo que se encuentra a continuación, se
-        limpiaran, se ordenaran, se calculará la frecuencia absoluta, frecuencia
-        relativa y frecuencia acumulada, se dibujará un histograma para los
-        datos ademas de calcular múltiples medidas de tendencia central.
-      </p>
-      <v-textarea
-        outlined
-        name="raw-data"
-        label="Ingresa los números, separados por una coma, un espacio o un salto de linea"
-        v-model="rawData"
-        autofocus
-      ></v-textarea>
+        <h1 class="text-center mx-auto mb-4">Calculadora estadística</h1>
+        <p class="text-justify mx-auto mb-6">
+          Ingresa el set de datos en el campo que se encuentra a continuación,
+          se limpiaran, se ordenaran, se calculará la frecuencia absoluta,
+          frecuencia relativa y frecuencia acumulada, se dibujará un histograma
+          para los datos ademas de calcular múltiples medidas de tendencia
+          central.
+        </p>
+        <v-switch
+          class="switch-center mx-auto"
+          label="Tema oscuro"
+          color="orange"
+          inset
+          v-model="darkMode"
+        ></v-switch>
+        <v-textarea
+          outlined
+          name="raw-data"
+          label="Ingresa los números, separados por una coma, un espacio o un salto de linea"
+          v-model="rawData"
+          autofocus
+        ></v-textarea>
 
-      <v-row>
-        <v-col
-          cols="12"
-          md="6"
-          v-if="parsedDataArray.length > 0"
+        <v-row>
+          <v-col
+            cols="12"
+            md="6"
+            v-if="parsedDataArray.length > 0"
+            class="animate__animated animate__fadeInUp"
+          >
+            <h2>
+              Datos limpios - {{ parsedDataArray.length }} números encontrados
+            </h2>
+
+            <v-btn
+              small
+              type="button"
+              color="primary"
+              v-clipboard:copy="parsedDataArray.join('\n')"
+              v-clipboard:success="onCopy"
+              v-clipboard:error="onError"
+            >
+              Copiar&nbsp;
+              <i class="fas fa-copy"></i>
+            </v-btn>
+            <v-textarea
+              class="mt-2"
+              name="parsed-data"
+              outlined
+              readonly
+              :value="parsedDataArray.join('\n')"
+            ></v-textarea>
+          </v-col>
+
+          <v-col
+            cols="12"
+            md="6"
+            v-if="sortedDataArray.length > 0"
+            class="animate__animated animate__fadeInUp"
+          >
+            <h2>
+              Datos ordenados - {{ sortedDataArray.length }} números encontrados
+            </h2>
+
+            <v-btn
+              small
+              type="button"
+              color="primary"
+              v-clipboard:copy="sortedDataArray.join('\n')"
+              v-clipboard:success="onCopy"
+              v-clipboard:error="onError"
+            >
+              Copiar&nbsp;
+              <i class="fas fa-copy"></i>
+            </v-btn>
+            <v-textarea
+              class="mt-2"
+              name="ordered-data"
+              outlined
+              readonly
+              :value="sortedDataArray.join('\n')"
+            ></v-textarea>
+          </v-col>
+        </v-row>
+
+        <div
+          v-if="fullStatistics.length > 1"
           class="animate__animated animate__fadeInUp"
         >
-          <h2>Datos limpios - {{ parsedDataArray.length }} números encontrados</h2>
+          <h2>Tabla de datos</h2>
+          <v-data-table
+            :headers="[
+              { text: 'Número', value: 'number' },
+              { text: 'Frecuencia Absoluta', value: 'absoluteFrecuency' },
+              {
+                text: 'Frecuencia Absoluta Acumulada',
+                value: 'accumulatedAbsoluteFrecuency',
+              },
+              { text: 'Frecuencia Relativa', value: 'relativeFrecuency' },
+              {
+                text: 'Frecuencia Relativa Acumulada',
+                value: 'accumulatedRelativeFrecuency',
+              },
+            ]"
+            :items="fullStatistics"
+            class="elevation-1 mt-2"
+            hide-default-footer
+            disable-sort
+          ></v-data-table>
+        </div>
 
-          <v-btn
-            small
-            type="button"
-            color="primary"
-            v-clipboard:copy="parsedDataArray.join('\n')"
-            v-clipboard:success="onCopy"
-            v-clipboard:error="onError"
-          >
-            Copiar&nbsp;
-            <i class="fas fa-copy"></i>
-          </v-btn>
-          <v-textarea
-            class="mt-2"
-            name="parsed-data"
-            outlined
-            readonly
-            :value="parsedDataArray.join('\n')"
-          ></v-textarea>
-        </v-col>
-
-        <v-col
-          cols="12"
-          md="6"
-          v-if="sortedDataArray.length > 0"
-          class="animate__animated animate__fadeInUp"
+        <div
+          v-show="sortedDataArray.length > 0"
+          class="animate__animated animate__fadeInUp mt-10"
         >
-          <h2>Datos ordenados - {{ sortedDataArray.length }} números encontrados</h2>
-
-          <v-btn
-            small
-            type="button"
-            color="primary"
-            v-clipboard:copy="sortedDataArray.join('\n')"
-            v-clipboard:success="onCopy"
-            v-clipboard:error="onError"
-          >
-            Copiar&nbsp;
-            <i class="fas fa-copy"></i>
-          </v-btn>
-          <v-textarea
-            class="mt-2"
-            name="ordered-data"
-            outlined
-            readonly
-            :value="sortedDataArray.join('\n')"
-          ></v-textarea>
-        </v-col>
-      </v-row>
-
-      <div v-if="fullStatistics.length > 1" class="animate__animated animate__fadeInUp">
-        <h2>Tabla de datos</h2>
-        <v-data-table
-          :headers="[
-            { text: 'Número', value: 'number' },
-            { text: 'Frecuencia Absoluta', value: 'absoluteFrecuency' },
-            {
-              text: 'Frecuencia Absoluta Acumulada',
-              value: 'accumulatedAbsoluteFrecuency',
-            },
-            { text: 'Frecuencia Relativa', value: 'relativeFrecuency' },
-            {
-              text: 'Frecuencia Relativa Acumulada',
-              value: 'accumulatedRelativeFrecuency',
-            },
-          ]"
-          :items="fullStatistics"
-          class="elevation-1 mt-2"
-          hide-default-footer
-          disable-sort
-        ></v-data-table>
-      </div>
-
-      <div v-show="sortedDataArray.length > 0" class="animate__animated animate__fadeInUp mt-10">
-        <h2>Histograma</h2>
-        <canvas id="histograma"></canvas>
-      </div>
-    </v-container>
+          <h2>Histograma</h2>
+          <canvas id="histograma"></canvas>
+        </div>
+      </v-container>
+    </v-main>
     <v-footer fixed>
       <span class="mx-auto text-center">
         &copy; {{ new Date().getFullYear() }}.
         <span v-html="currentFooterHTML"></span>
-        <a target="_blank" href="https://github.com/eduardodevop/proyecto-estadistica-2020">
+        <a
+          target="_blank"
+          href="https://github.com/eduardodevop/proyecto-estadistica-2020"
+        >
           <i class="fab fa-github"></i>
         </a>
       </span>
@@ -146,6 +169,7 @@ export default {
       ],
       currentFooterMessage: 0,
       chart: "",
+      darkMode: localStorage.getItem("darkModeEnabled") ? true : false,
     };
   },
   methods: {
@@ -157,10 +181,10 @@ export default {
         this.currentFooterMessage = nextMessage;
       }
     },
-    onCopy: function (e) {
+    onCopy: function(e) {
       Swal.fire("Texto copiado al portapapeles", "", "success");
     },
-    onError: function (e) {
+    onError: function(e) {
       Swal.fire(
         "Ocurrió un error inesperado al intentar copiar el texto",
         "",
@@ -239,7 +263,16 @@ export default {
     },
   },
   watch: {
-    sortedDataArray: function (n, old) {
+    darkMode: function(status) {
+      if (status === true) {
+        localStorage.setItem("darkModeEnabled", JSON.stringify(true));
+        this.$vuetify.theme.dark = true;
+      } else {
+        localStorage.removeItem("darkModeEnabled");
+        this.$vuetify.theme.dark = false;
+      }
+    },
+    sortedDataArray: function(n, old) {
       if (n == old) {
         return;
       }
@@ -254,10 +287,10 @@ export default {
               return absoluteFrecuency(this.rawData, x);
             }),
             backgroundColor: this.sortedDataArray.map((x) => {
-              return "rgba(71, 183,132,.5)";
+              return "rgba(222, 230, 0, .8)";
             }),
             borderColor: this.sortedDataArray.map((x) => {
-              return "#47b784";
+              return "#f4fc03";
             }),
             borderWidth: 3,
           },
@@ -276,3 +309,10 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+.switch-center {
+  display: flex;
+  justify-content: center;
+}
+</style>

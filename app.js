@@ -13,5 +13,9 @@ Vue.config.ignoredElements = ["lottie-player"];
 new Vue({
   el: "#app",
   render: (h) => h(App),
-  vuetify: new Vuetify(),
+  vuetify: new Vuetify({
+    theme: {
+      dark: localStorage.getItem('darkModeEnabled') ? true : false,
+    },
+  }),
 });
