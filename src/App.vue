@@ -33,9 +33,7 @@
           v-if="parsedDataArray.length > 0"
           class="animate__animated animate__fadeInUp"
         >
-          <h2>
-            Datos limpios - {{ parsedDataArray.length }} números encontrados
-          </h2>
+          <h2>Datos limpios - {{ parsedDataArray.length }} números encontrados</h2>
 
           <v-btn
             small
@@ -45,7 +43,8 @@
             v-clipboard:success="onCopy"
             v-clipboard:error="onError"
           >
-            Copiar&nbsp;<i class="fas fa-copy"></i>
+            Copiar&nbsp;
+            <i class="fas fa-copy"></i>
           </v-btn>
           <v-textarea
             class="mt-2"
@@ -62,9 +61,7 @@
           v-if="sortedDataArray.length > 0"
           class="animate__animated animate__fadeInUp"
         >
-          <h2>
-            Datos ordenados - {{ sortedDataArray.length }} números encontrados
-          </h2>
+          <h2>Datos ordenados - {{ sortedDataArray.length }} números encontrados</h2>
 
           <v-btn
             small
@@ -74,7 +71,8 @@
             v-clipboard:success="onCopy"
             v-clipboard:error="onError"
           >
-            Copiar&nbsp;<i class="fas fa-copy"></i>
+            Copiar&nbsp;
+            <i class="fas fa-copy"></i>
           </v-btn>
           <v-textarea
             class="mt-2"
@@ -86,10 +84,7 @@
         </v-col>
       </v-row>
 
-      <div
-        v-if="fullStatistics.length > 1"
-        class="animate__animated animate__fadeInUp"
-      >
+      <div v-if="fullStatistics.length > 1" class="animate__animated animate__fadeInUp">
         <h2>Tabla de datos</h2>
         <v-data-table
           :headers="[
@@ -112,10 +107,7 @@
         ></v-data-table>
       </div>
 
-      <div
-        v-if="sortedDataArray.length > 0"
-        class="animate__animated animate__fadeInUp mt-10"
-      >
+      <div v-show="sortedDataArray.length > 0" class="animate__animated animate__fadeInUp mt-10">
         <h2>Histograma</h2>
         <canvas id="histograma"></canvas>
       </div>
@@ -124,10 +116,7 @@
       <span class="mx-auto text-center">
         &copy; {{ new Date().getFullYear() }}.
         <span v-html="currentFooterHTML"></span>
-        <a
-          target="_blank"
-          href="https://github.com/eduardodevop/proyecto-estadistica-2020"
-        >
+        <a target="_blank" href="https://github.com/eduardodevop/proyecto-estadistica-2020">
           <i class="fab fa-github"></i>
         </a>
       </span>
@@ -156,6 +145,7 @@ export default {
         "Hecho con ☕ en Chimaltenango.",
       ],
       currentFooterMessage: 0,
+      chart: "",
     };
   },
   methods: {
@@ -167,47 +157,20 @@ export default {
         this.currentFooterMessage = nextMessage;
       }
     },
-    onCopy: function(e) {
+    onCopy: function (e) {
       Swal.fire("Texto copiado al portapapeles", "", "success");
     },
-    onError: function(e) {
+    onError: function (e) {
       Swal.fire(
         "Ocurrió un error inesperado al intentar copiar el texto",
         "",
         "error"
       );
     },
-    createChart(chartId, chartData) {
-      const ctx = document.getElementById(chartId);
-      const myChart = new Chart(ctx, {
-        type: chartData.type,
-        data: chartData.data,
-        options: chartData.options,
-      });
-    },
     createHistogramaChart() {
       let chartData = {
         type: "line",
-        data: {
-          labels: this.sortedDataArray.map((x) => {
-            return `No. ${x}`;
-          }),
-          datasets: [
-            {
-              label: "Frecuencia absoluta",
-              data: this.sortedDataArray.map((x) => {
-                return absoluteFrecuency(this.rawData, x);
-              }),
-              backgroundColor: this.sortedDataArray.map((x) => {
-                return "rgba(71, 183,132,.5)";
-              }),
-              borderColor: this.sortedDataArray.map((x) => {
-                return "#47b784";
-              }),
-              borderWidth: 3,
-            },
-          ],
-        },
+        data: {},
         options: {
           responsive: true,
           lineTension: 1,
@@ -223,8 +186,11 @@ export default {
           },
         },
       };
-
-      this.createChart("histograma", chartData);
+      this.chart = new Chart(document.getElementById("histograma"), {
+        type: chartData.type,
+        data: chartData.data,
+        options: chartData.options,
+      });
     },
   },
   computed: {
@@ -270,6 +236,34 @@ export default {
       });
 
       return statistics;
+    },
+  },
+  watch: {
+    sortedDataArray: function (n, old) {
+      if (n == old) {
+        return;
+      }
+      this.chart.data = {
+        labels: this.sortedDataArray.map((x) => {
+          return `No. ${x}`;
+        }),
+        datasets: [
+          {
+            label: "Frecuencia absoluta",
+            data: this.sortedDataArray.map((x) => {
+              return absoluteFrecuency(this.rawData, x);
+            }),
+            backgroundColor: this.sortedDataArray.map((x) => {
+              return "rgba(71, 183,132,.5)";
+            }),
+            borderColor: this.sortedDataArray.map((x) => {
+              return "#47b784";
+            }),
+            borderWidth: 3,
+          },
+        ],
+      };
+      this.chart.update();
     },
   },
   created() {
