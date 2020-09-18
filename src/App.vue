@@ -33,9 +33,9 @@
           v-if="parsedDataArray.length > 0"
           class="animate__animated animate__fadeInUp"
         >
-          <b
-            >Datos limpios - {{ parsedDataArray.length }} números encontrados</b
-          >
+          <h2>
+            Datos limpios - {{ parsedDataArray.length }} números encontrados
+          </h2>
 
           <v-btn
             small
@@ -62,9 +62,9 @@
           v-if="sortedDataArray.length > 0"
           class="animate__animated animate__fadeInUp"
         >
-          <b>
+          <h2>
             Datos ordenados - {{ sortedDataArray.length }} números encontrados
-          </b>
+          </h2>
 
           <v-btn
             small
@@ -87,13 +87,37 @@
       </v-row>
 
       <div
-        v-if="fullStatistics.length > 0"
+        v-if="fullStatistics.length > 1"
         class="animate__animated animate__fadeInUp"
       >
-        <b>Todos los datos</b>
-        <div v-for="number in fullStatistics" :key="number.number">
-          {{ number }}
-        </div>
+        <h2>Tabla de datos</h2>
+        <v-data-table
+          :headers="[
+            { text: 'Número', value: 'number' },
+            { text: 'Frecuencia Absoluta', value: 'absoluteFrecuency' },
+            {
+              text: 'Frecuencia Absoluta Acumulada',
+              value: 'accumulatedAbsoluteFrecuency',
+            },
+            { text: 'Frecuencia Relativa', value: 'relativeFrecuency' },
+            {
+              text: 'Frecuencia Relativa Acumulada',
+              value: 'accumulatedRelativeFrecuency',
+            },
+          ]"
+          :items="fullStatistics"
+          class="elevation-1 mt-2"
+          hide-default-footer
+          disable-sort
+        ></v-data-table>
+      </div>
+
+      <div
+        v-if="sortedDataArray.length > 0"
+        class="animate__animated animate__fadeInUp mt-10"
+      >
+        <h2>Histograma</h2>
+        <canvas id="histograma"></canvas>
       </div>
     </v-container>
     <v-footer fixed>
@@ -119,6 +143,8 @@ import {
   totalData,
   relativeFrecuency,
 } from "./ts/statistics.ts";
+
+define;
 export default {
   name: "app",
   data() {
@@ -151,6 +177,55 @@ export default {
         "error"
       );
     },
+    createChart(chartId, chartData) {
+      const ctx = document.getElementById(chartId);
+      const myChart = new Chart(ctx, {
+        type: chartData.type,
+        data: chartData.data,
+        options: chartData.options,
+      });
+    },
+    createHistogramaChart() {
+      let chartData = {
+        type: "line",
+        data: {
+          labels: this.sortedDataArray.map((x) => {
+            return `No. ${x}`;
+          }),
+          datasets: [
+            {
+              label: "Frecuencia absoluta",
+              data: this.sortedDataArray.map((x) => {
+                return absoluteFrecuency(this.rawData, x);
+              }),
+              backgroundColor: this.sortedDataArray.map((x) => {
+                return "rgba(71, 183,132,.5)";
+              }),
+              borderColor: this.sortedDataArray.map((x) => {
+                return "#47b784";
+              }),
+              borderWidth: 3,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          lineTension: 1,
+          scales: {
+            yAxes: [
+              {
+                ticks: {
+                  beginAtZero: true,
+                  padding: 25,
+                },
+              },
+            ],
+          },
+        },
+      };
+
+      this.createChart("histograma", chartData);
+    },
   },
   computed: {
     currentFooterHTML() {
@@ -180,9 +255,18 @@ export default {
           number: x,
           absoluteFrecuency: absoluteFrec,
           accumulatedAbsoluteFrecuency: absoluteFrecAcc,
-          relativeFrecuency: relativeFrec,
-          accumulatedRelativeFrecuency: relativeFrecAcc,
+          relativeFrecuency: (relativeFrec * 100).toFixed(2) + "%",
+          accumulatedRelativeFrecuency:
+            (relativeFrecAcc * 100).toFixed(2) + "%",
         });
+      });
+
+      statistics.push({
+        number: "TOTALES:",
+        absoluteFrecuency: absoluteFrecAcc,
+        accumulatedAbsoluteFrecuency: "",
+        relativeFrecuency: (relativeFrecAcc * 100).toFixed(2) + "%",
+        accumulatedRelativeFrecuency: "",
       });
 
       return statistics;
@@ -192,6 +276,9 @@ export default {
     setInterval(() => {
       this.nextFooterMessage();
     }, 5000);
+  },
+  mounted() {
+    this.createHistogramaChart();
   },
 };
 </script>
