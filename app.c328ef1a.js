@@ -8604,7 +8604,74 @@ exports.absoluteFrecuency = function (dataset, number) {
 exports.relativeFrecuency = function (dataset, number) {
   return exports.absoluteFrecuency(dataset, number) / exports.totalData(dataset);
 };
-},{}],"node_modules/vue-hot-reload-api/dist/index.js":[function(require,module,exports) {
+},{}],"node_modules/parcel-bundler/src/builtins/bundle-url.js":[function(require,module,exports) {
+var bundleURL = null;
+
+function getBundleURLCached() {
+  if (!bundleURL) {
+    bundleURL = getBundleURL();
+  }
+
+  return bundleURL;
+}
+
+function getBundleURL() {
+  // Attempt to find the URL of the current script and use that as the base URL
+  try {
+    throw new Error();
+  } catch (err) {
+    var matches = ('' + err.stack).match(/(https?|file|ftp|chrome-extension|moz-extension):\/\/[^)\n]+/g);
+
+    if (matches) {
+      return getBaseURL(matches[0]);
+    }
+  }
+
+  return '/';
+}
+
+function getBaseURL(url) {
+  return ('' + url).replace(/^((?:https?|file|ftp|chrome-extension|moz-extension):\/\/.+)\/[^/]+$/, '$1') + '/';
+}
+
+exports.getBundleURL = getBundleURLCached;
+exports.getBaseURL = getBaseURL;
+},{}],"node_modules/parcel-bundler/src/builtins/css-loader.js":[function(require,module,exports) {
+var bundle = require('./bundle-url');
+
+function updateLink(link) {
+  var newLink = link.cloneNode();
+
+  newLink.onload = function () {
+    link.remove();
+  };
+
+  newLink.href = link.href.split('?')[0] + '?' + Date.now();
+  link.parentNode.insertBefore(newLink, link.nextSibling);
+}
+
+var cssTimeout = null;
+
+function reloadCSS() {
+  if (cssTimeout) {
+    return;
+  }
+
+  cssTimeout = setTimeout(function () {
+    var links = document.querySelectorAll('link[rel="stylesheet"]');
+
+    for (var i = 0; i < links.length; i++) {
+      if (bundle.getBaseURL(links[i].href) === bundle.getBundleURL()) {
+        updateLink(links[i]);
+      }
+    }
+
+    cssTimeout = null;
+  }, 50);
+}
+
+module.exports = reloadCSS;
+},{"./bundle-url":"node_modules/parcel-bundler/src/builtins/bundle-url.js"}],"node_modules/vue-hot-reload-api/dist/index.js":[function(require,module,exports) {
 var Vue // late bind
 var version
 var map = Object.create(null)
@@ -8880,6 +8947,7 @@ function patchScopedSlots (instance) {
 }
 
 },{}],"src/App.vue":[function(require,module,exports) {
+var define;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -8929,13 +8997,125 @@ var _statistics = require("./ts/statistics.ts");
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+define;
 var _default = {
   name: "app",
   data: function data() {
     return {
       rawData: "",
       footerMessages: ["Hecho con el 💛 por Luis, Hugo y Fernan.", "Hecho con 😴 en la pandemia 🦠.", "Hecho con ☕ en Chimaltenango."],
-      currentFooterMessage: 0
+      currentFooterMessage: 0,
+      chart: "",
+      darkMode: localStorage.getItem("darkModeEnabled") ? true : false
     };
   },
   methods: {
@@ -8947,6 +9127,35 @@ var _default = {
       } else {
         this.currentFooterMessage = nextMessage;
       }
+    },
+    onCopy: function onCopy(e) {
+      Swal.fire("Texto copiado al portapapeles", "", "success");
+    },
+    onError: function onError(e) {
+      Swal.fire("Ocurrió un error inesperado al intentar copiar el texto", "", "error");
+    },
+    createHistogramaChart: function createHistogramaChart() {
+      var chartData = {
+        type: "line",
+        data: {},
+        options: {
+          responsive: true,
+          lineTension: 1,
+          scales: {
+            yAxes: [{
+              ticks: {
+                beginAtZero: true,
+                padding: 25
+              }
+            }]
+          }
+        }
+      };
+      this.chart = new Chart(document.getElementById("histograma"), {
+        type: chartData.type,
+        data: chartData.data,
+        options: chartData.options
+      });
     }
   },
   computed: {
@@ -8974,19 +9183,67 @@ var _default = {
           number: x,
           absoluteFrecuency: absoluteFrec,
           accumulatedAbsoluteFrecuency: absoluteFrecAcc,
-          relativeFrecuency: relativeFrec,
-          accumulatedRelativeFrecuency: relativeFrecAcc
+          relativeFrecuency: (relativeFrec * 100).toFixed(2) + "%",
+          accumulatedRelativeFrecuency: (relativeFrecAcc * 100).toFixed(2) + "%"
         });
+      });
+      statistics.push({
+        number: "TOTALES:",
+        absoluteFrecuency: absoluteFrecAcc,
+        accumulatedAbsoluteFrecuency: "",
+        relativeFrecuency: (relativeFrecAcc * 100).toFixed(2) + "%",
+        accumulatedRelativeFrecuency: ""
       });
       return statistics;
     }
   },
+  watch: {
+    darkMode: function darkMode(status) {
+      if (status === true) {
+        localStorage.setItem("darkModeEnabled", JSON.stringify(true));
+        this.$vuetify.theme.dark = true;
+      } else {
+        localStorage.removeItem("darkModeEnabled");
+        this.$vuetify.theme.dark = false;
+      }
+    },
+    sortedDataArray: function sortedDataArray(n, old) {
+      var _this2 = this;
+
+      if (n == old) {
+        return;
+      }
+
+      this.chart.data = {
+        labels: this.sortedDataArray.map(function (x) {
+          return "No. ".concat(x);
+        }),
+        datasets: [{
+          label: "Frecuencia absoluta",
+          data: this.sortedDataArray.map(function (x) {
+            return (0, _statistics.absoluteFrecuency)(_this2.rawData, x);
+          }),
+          backgroundColor: this.sortedDataArray.map(function (x) {
+            return "rgba(222, 230, 0, .8)";
+          }),
+          borderColor: this.sortedDataArray.map(function (x) {
+            return "#f4fc03";
+          }),
+          borderWidth: 3
+        }]
+      };
+      this.chart.update();
+    }
+  },
   created: function created() {
-    var _this2 = this;
+    var _this3 = this;
 
     setInterval(function () {
-      _this2.nextFooterMessage();
+      _this3.nextFooterMessage();
     }, 5000);
+  },
+  mounted: function mounted() {
+    this.createHistogramaChart();
   }
 };
 exports.default = _default;
@@ -9006,64 +9263,271 @@ exports.default = _default;
     "v-app",
     [
       _c(
-        "v-container",
+        "v-main",
         [
-          _c("v-textarea", {
-            attrs: {
-              outlined: "",
-              label:
-                "Ingrese los números, separados por una coma, un espacio o un salto de linea"
-            },
-            model: {
-              value: _vm.rawData,
-              callback: function($$v) {
-                _vm.rawData = $$v
-              },
-              expression: "rawData"
-            }
-          }),
-          _vm._v(" "),
           _c(
-            "span",
+            "v-container",
+            { staticClass: "pt-8 pb-15" },
             [
-              _c("b", [_vm._v("Datos limpios")]),
+              _c("lottie-player", {
+                staticClass: "mx-auto mb-3",
+                staticStyle: { width: "200px", height: "200px" },
+                attrs: {
+                  src: "./chart-lottie.json",
+                  background: "transparent",
+                  speed: "1",
+                  loop: "",
+                  autoplay: ""
+                }
+              }),
               _vm._v(" "),
-              _c("br"),
-              _vm._v("\n      " + _vm._s(_vm.parsedDataArray) + "\n      "),
-              _c("br"),
+              _c("h1", { staticClass: "text-center mx-auto mb-4" }, [
+                _vm._v("Calculadora estadística")
+              ]),
               _vm._v(" "),
-              _c("b", [_vm._v("Datos ordenados")]),
+              _c("p", { staticClass: "text-justify mx-auto mb-6" }, [
+                _vm._v(
+                  "\n        Ingresa el set de datos en el campo que se encuentra a continuación,\n        se limpiaran, se ordenaran, se calculará la frecuencia absoluta,\n        frecuencia relativa y frecuencia acumulada, se dibujará un histograma\n        para los datos ademas de calcular múltiples medidas de tendencia\n        central.\n      "
+                )
+              ]),
               _vm._v(" "),
-              _c("br"),
-              _vm._v("\n      " + _vm._s(_vm.sortedDataArray) + "\n      "),
-              _c("br"),
+              _c("v-switch", {
+                staticClass: "switch-center mx-auto",
+                attrs: { label: "Tema oscuro", color: "orange", inset: "" },
+                model: {
+                  value: _vm.darkMode,
+                  callback: function($$v) {
+                    _vm.darkMode = $$v
+                  },
+                  expression: "darkMode"
+                }
+              }),
               _vm._v(" "),
-              _c("b", [_vm._v("Todos los datos")]),
+              _c("v-textarea", {
+                attrs: {
+                  outlined: "",
+                  name: "raw-data",
+                  label:
+                    "Ingresa los números, separados por una coma, un espacio o un salto de linea",
+                  autofocus: ""
+                },
+                model: {
+                  value: _vm.rawData,
+                  callback: function($$v) {
+                    _vm.rawData = $$v
+                  },
+                  expression: "rawData"
+                }
+              }),
               _vm._v(" "),
-              _c("br"),
+              _c(
+                "v-row",
+                [
+                  _vm.parsedDataArray.length > 0
+                    ? _c(
+                        "v-col",
+                        {
+                          staticClass: "animate__animated animate__fadeInUp",
+                          attrs: { cols: "12", md: "6" }
+                        },
+                        [
+                          _c("h2", [
+                            _vm._v(
+                              "\n            Datos limpios - " +
+                                _vm._s(_vm.parsedDataArray.length) +
+                                " números encontrados\n          "
+                            )
+                          ]),
+                          _vm._v(" "),
+                          _c(
+                            "v-btn",
+                            {
+                              directives: [
+                                {
+                                  name: "clipboard",
+                                  rawName: "v-clipboard:copy",
+                                  value: _vm.parsedDataArray.join("\n"),
+                                  expression: "parsedDataArray.join('\\n')",
+                                  arg: "copy"
+                                },
+                                {
+                                  name: "clipboard",
+                                  rawName: "v-clipboard:success",
+                                  value: _vm.onCopy,
+                                  expression: "onCopy",
+                                  arg: "success"
+                                },
+                                {
+                                  name: "clipboard",
+                                  rawName: "v-clipboard:error",
+                                  value: _vm.onError,
+                                  expression: "onError",
+                                  arg: "error"
+                                }
+                              ],
+                              attrs: {
+                                small: "",
+                                type: "button",
+                                color: "primary"
+                              }
+                            },
+                            [
+                              _vm._v("\n            Copiar \n            "),
+                              _c("i", { staticClass: "fas fa-copy" })
+                            ]
+                          ),
+                          _vm._v(" "),
+                          _c("v-textarea", {
+                            staticClass: "mt-2",
+                            attrs: {
+                              name: "parsed-data",
+                              outlined: "",
+                              readonly: "",
+                              value: _vm.parsedDataArray.join("\n")
+                            }
+                          })
+                        ],
+                        1
+                      )
+                    : _vm._e(),
+                  _vm._v(" "),
+                  _vm.sortedDataArray.length > 0
+                    ? _c(
+                        "v-col",
+                        {
+                          staticClass: "animate__animated animate__fadeInUp",
+                          attrs: { cols: "12", md: "6" }
+                        },
+                        [
+                          _c("h2", [
+                            _vm._v(
+                              "\n            Datos ordenados - " +
+                                _vm._s(_vm.sortedDataArray.length) +
+                                " números encontrados\n          "
+                            )
+                          ]),
+                          _vm._v(" "),
+                          _c(
+                            "v-btn",
+                            {
+                              directives: [
+                                {
+                                  name: "clipboard",
+                                  rawName: "v-clipboard:copy",
+                                  value: _vm.sortedDataArray.join("\n"),
+                                  expression: "sortedDataArray.join('\\n')",
+                                  arg: "copy"
+                                },
+                                {
+                                  name: "clipboard",
+                                  rawName: "v-clipboard:success",
+                                  value: _vm.onCopy,
+                                  expression: "onCopy",
+                                  arg: "success"
+                                },
+                                {
+                                  name: "clipboard",
+                                  rawName: "v-clipboard:error",
+                                  value: _vm.onError,
+                                  expression: "onError",
+                                  arg: "error"
+                                }
+                              ],
+                              attrs: {
+                                small: "",
+                                type: "button",
+                                color: "primary"
+                              }
+                            },
+                            [
+                              _vm._v("\n            Copiar \n            "),
+                              _c("i", { staticClass: "fas fa-copy" })
+                            ]
+                          ),
+                          _vm._v(" "),
+                          _c("v-textarea", {
+                            staticClass: "mt-2",
+                            attrs: {
+                              name: "ordered-data",
+                              outlined: "",
+                              readonly: "",
+                              value: _vm.sortedDataArray.join("\n")
+                            }
+                          })
+                        ],
+                        1
+                      )
+                    : _vm._e()
+                ],
+                1
+              ),
               _vm._v(" "),
-              _vm._l(_vm.fullStatistics, function(number) {
-                return _c("div", { key: number.number }, [
-                  _vm._v("\n        " + _vm._s(number) + "\n      ")
-                ])
-              })
+              _vm.fullStatistics.length > 1
+                ? _c(
+                    "div",
+                    { staticClass: "animate__animated animate__fadeInUp" },
+                    [
+                      _c("h2", [_vm._v("Tabla de datos")]),
+                      _vm._v(" "),
+                      _c("v-data-table", {
+                        staticClass: "elevation-1 mt-2",
+                        attrs: {
+                          headers: [
+                            { text: "Número", value: "number" },
+                            {
+                              text: "Frecuencia Absoluta",
+                              value: "absoluteFrecuency"
+                            },
+                            {
+                              text: "Frecuencia Absoluta Acumulada",
+                              value: "accumulatedAbsoluteFrecuency"
+                            },
+                            {
+                              text: "Frecuencia Relativa",
+                              value: "relativeFrecuency"
+                            },
+                            {
+                              text: "Frecuencia Relativa Acumulada",
+                              value: "accumulatedRelativeFrecuency"
+                            }
+                          ],
+                          items: _vm.fullStatistics,
+                          "hide-default-footer": "",
+                          "disable-sort": ""
+                        }
+                      })
+                    ],
+                    1
+                  )
+                : _vm._e(),
+              _vm._v(" "),
+              _c(
+                "div",
+                {
+                  directives: [
+                    {
+                      name: "show",
+                      rawName: "v-show",
+                      value: _vm.sortedDataArray.length > 0,
+                      expression: "sortedDataArray.length > 0"
+                    }
+                  ],
+                  staticClass: "animate__animated animate__fadeInUp mt-10"
+                },
+                [
+                  _c("h2", [_vm._v("Histograma")]),
+                  _vm._v(" "),
+                  _c("canvas", { attrs: { id: "histograma" } })
+                ]
+              )
             ],
-            2
-          ),
-          _vm._v(" "),
-          _c("br"),
-          _vm._v("  "),
-          _c("br"),
-          _vm._v("  "),
-          _c("br"),
-          _vm._v("  "),
-          _c("br"),
-          _vm._v(" \n  ")
+            1
+          )
         ],
         1
       ),
       _vm._v(" "),
-      _c("v-footer", { attrs: { absolute: "" } }, [
+      _c("v-footer", { attrs: { fixed: "" } }, [
         _c("span", { staticClass: "mx-auto text-center" }, [
           _vm._v("\n      © " + _vm._s(new Date().getFullYear()) + ".\n      "),
           _c("span", {
@@ -9094,7 +9558,7 @@ render._withStripped = true
             render: render,
             staticRenderFns: staticRenderFns,
             _compiled: true,
-            _scopeId: null,
+            _scopeId: "data-v-e457b9",
             functional: undefined
           };
         })());
@@ -9114,82 +9578,19 @@ render._withStripped = true
         }
 
         
+        var reloadCSS = require('_css_loader');
+        module.hot.dispose(reloadCSS);
+        module.hot.accept(reloadCSS);
+      
       }
     })();
-},{"./ts/statistics.ts":"src/ts/statistics.ts","vue-hot-reload-api":"node_modules/vue-hot-reload-api/dist/index.js","vue":"node_modules/vue/dist/vue.runtime.esm.js"}],"../../AppData/Roaming/npm/node_modules/parcel-bundler/src/builtins/bundle-url.js":[function(require,module,exports) {
-var bundleURL = null;
-
-function getBundleURLCached() {
-  if (!bundleURL) {
-    bundleURL = getBundleURL();
-  }
-
-  return bundleURL;
-}
-
-function getBundleURL() {
-  // Attempt to find the URL of the current script and use that as the base URL
-  try {
-    throw new Error();
-  } catch (err) {
-    var matches = ('' + err.stack).match(/(https?|file|ftp|chrome-extension|moz-extension):\/\/[^)\n]+/g);
-
-    if (matches) {
-      return getBaseURL(matches[0]);
-    }
-  }
-
-  return '/';
-}
-
-function getBaseURL(url) {
-  return ('' + url).replace(/^((?:https?|file|ftp|chrome-extension|moz-extension):\/\/.+)\/[^/]+$/, '$1') + '/';
-}
-
-exports.getBundleURL = getBundleURLCached;
-exports.getBaseURL = getBaseURL;
-},{}],"../../AppData/Roaming/npm/node_modules/parcel-bundler/src/builtins/css-loader.js":[function(require,module,exports) {
-var bundle = require('./bundle-url');
-
-function updateLink(link) {
-  var newLink = link.cloneNode();
-
-  newLink.onload = function () {
-    link.remove();
-  };
-
-  newLink.href = link.href.split('?')[0] + '?' + Date.now();
-  link.parentNode.insertBefore(newLink, link.nextSibling);
-}
-
-var cssTimeout = null;
-
-function reloadCSS() {
-  if (cssTimeout) {
-    return;
-  }
-
-  cssTimeout = setTimeout(function () {
-    var links = document.querySelectorAll('link[rel="stylesheet"]');
-
-    for (var i = 0; i < links.length; i++) {
-      if (bundle.getBaseURL(links[i].href) === bundle.getBundleURL()) {
-        updateLink(links[i]);
-      }
-    }
-
-    cssTimeout = null;
-  }, 50);
-}
-
-module.exports = reloadCSS;
-},{"./bundle-url":"../../AppData/Roaming/npm/node_modules/parcel-bundler/src/builtins/bundle-url.js"}],"node_modules/vuetify/dist/vuetify.min.css":[function(require,module,exports) {
+},{"./ts/statistics.ts":"src/ts/statistics.ts","_css_loader":"node_modules/parcel-bundler/src/builtins/css-loader.js","vue-hot-reload-api":"node_modules/vue-hot-reload-api/dist/index.js","vue":"node_modules/vue/dist/vue.runtime.esm.js"}],"node_modules/vuetify/dist/vuetify.min.css":[function(require,module,exports) {
 
         var reloadCSS = require('_css_loader');
         module.hot.dispose(reloadCSS);
         module.hot.accept(reloadCSS);
       
-},{"_css_loader":"../../AppData/Roaming/npm/node_modules/parcel-bundler/src/builtins/css-loader.js"}],"node_modules/vuetify/dist/vuetify.js":[function(require,module,exports) {
+},{"_css_loader":"node_modules/parcel-bundler/src/builtins/css-loader.js"}],"node_modules/vuetify/dist/vuetify.js":[function(require,module,exports) {
 var define;
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -52920,7 +53321,106 @@ module.exports = __WEBPACK_EXTERNAL_MODULE_vue__;
 /******/ })["default"];
 });
 
-},{"vue":"node_modules/vue/dist/vue.runtime.esm.js"}],"app.js":[function(require,module,exports) {
+},{"vue":"node_modules/vue/dist/vue.runtime.esm.js"}],"node_modules/clipboard/dist/clipboard.min.js":[function(require,module,exports) {
+var define;
+/*!
+ * clipboard.js v2.0.6
+ * https://clipboardjs.com/
+ * 
+ * Licensed MIT © Zeno Rocha
+ */
+!function(t,e){"object"==typeof exports&&"object"==typeof module?module.exports=e():"function"==typeof define&&define.amd?define([],e):"object"==typeof exports?exports.ClipboardJS=e():t.ClipboardJS=e()}(this,function(){return o={},r.m=n=[function(t,e){t.exports=function(t){var e;if("SELECT"===t.nodeName)t.focus(),e=t.value;else if("INPUT"===t.nodeName||"TEXTAREA"===t.nodeName){var n=t.hasAttribute("readonly");n||t.setAttribute("readonly",""),t.select(),t.setSelectionRange(0,t.value.length),n||t.removeAttribute("readonly"),e=t.value}else{t.hasAttribute("contenteditable")&&t.focus();var o=window.getSelection(),r=document.createRange();r.selectNodeContents(t),o.removeAllRanges(),o.addRange(r),e=o.toString()}return e}},function(t,e){function n(){}n.prototype={on:function(t,e,n){var o=this.e||(this.e={});return(o[t]||(o[t]=[])).push({fn:e,ctx:n}),this},once:function(t,e,n){var o=this;function r(){o.off(t,r),e.apply(n,arguments)}return r._=e,this.on(t,r,n)},emit:function(t){for(var e=[].slice.call(arguments,1),n=((this.e||(this.e={}))[t]||[]).slice(),o=0,r=n.length;o<r;o++)n[o].fn.apply(n[o].ctx,e);return this},off:function(t,e){var n=this.e||(this.e={}),o=n[t],r=[];if(o&&e)for(var i=0,a=o.length;i<a;i++)o[i].fn!==e&&o[i].fn._!==e&&r.push(o[i]);return r.length?n[t]=r:delete n[t],this}},t.exports=n,t.exports.TinyEmitter=n},function(t,e,n){var d=n(3),h=n(4);t.exports=function(t,e,n){if(!t&&!e&&!n)throw new Error("Missing required arguments");if(!d.string(e))throw new TypeError("Second argument must be a String");if(!d.fn(n))throw new TypeError("Third argument must be a Function");if(d.node(t))return s=e,f=n,(u=t).addEventListener(s,f),{destroy:function(){u.removeEventListener(s,f)}};if(d.nodeList(t))return a=t,c=e,l=n,Array.prototype.forEach.call(a,function(t){t.addEventListener(c,l)}),{destroy:function(){Array.prototype.forEach.call(a,function(t){t.removeEventListener(c,l)})}};if(d.string(t))return o=t,r=e,i=n,h(document.body,o,r,i);throw new TypeError("First argument must be a String, HTMLElement, HTMLCollection, or NodeList");var o,r,i,a,c,l,u,s,f}},function(t,n){n.node=function(t){return void 0!==t&&t instanceof HTMLElement&&1===t.nodeType},n.nodeList=function(t){var e=Object.prototype.toString.call(t);return void 0!==t&&("[object NodeList]"===e||"[object HTMLCollection]"===e)&&"length"in t&&(0===t.length||n.node(t[0]))},n.string=function(t){return"string"==typeof t||t instanceof String},n.fn=function(t){return"[object Function]"===Object.prototype.toString.call(t)}},function(t,e,n){var a=n(5);function i(t,e,n,o,r){var i=function(e,n,t,o){return function(t){t.delegateTarget=a(t.target,n),t.delegateTarget&&o.call(e,t)}}.apply(this,arguments);return t.addEventListener(n,i,r),{destroy:function(){t.removeEventListener(n,i,r)}}}t.exports=function(t,e,n,o,r){return"function"==typeof t.addEventListener?i.apply(null,arguments):"function"==typeof n?i.bind(null,document).apply(null,arguments):("string"==typeof t&&(t=document.querySelectorAll(t)),Array.prototype.map.call(t,function(t){return i(t,e,n,o,r)}))}},function(t,e){if("undefined"!=typeof Element&&!Element.prototype.matches){var n=Element.prototype;n.matches=n.matchesSelector||n.mozMatchesSelector||n.msMatchesSelector||n.oMatchesSelector||n.webkitMatchesSelector}t.exports=function(t,e){for(;t&&9!==t.nodeType;){if("function"==typeof t.matches&&t.matches(e))return t;t=t.parentNode}}},function(t,e,n){"use strict";n.r(e);var o=n(0),r=n.n(o),i="function"==typeof Symbol&&"symbol"==typeof Symbol.iterator?function(t){return typeof t}:function(t){return t&&"function"==typeof Symbol&&t.constructor===Symbol&&t!==Symbol.prototype?"symbol":typeof t};function a(t,e){for(var n=0;n<e.length;n++){var o=e[n];o.enumerable=o.enumerable||!1,o.configurable=!0,"value"in o&&(o.writable=!0),Object.defineProperty(t,o.key,o)}}function c(t){!function(t,e){if(!(t instanceof e))throw new TypeError("Cannot call a class as a function")}(this,c),this.resolveOptions(t),this.initSelection()}var l=(function(t,e,n){return e&&a(t.prototype,e),n&&a(t,n),t}(c,[{key:"resolveOptions",value:function(t){var e=0<arguments.length&&void 0!==t?t:{};this.action=e.action,this.container=e.container,this.emitter=e.emitter,this.target=e.target,this.text=e.text,this.trigger=e.trigger,this.selectedText=""}},{key:"initSelection",value:function(){this.text?this.selectFake():this.target&&this.selectTarget()}},{key:"selectFake",value:function(){var t=this,e="rtl"==document.documentElement.getAttribute("dir");this.removeFake(),this.fakeHandlerCallback=function(){return t.removeFake()},this.fakeHandler=this.container.addEventListener("click",this.fakeHandlerCallback)||!0,this.fakeElem=document.createElement("textarea"),this.fakeElem.style.fontSize="12pt",this.fakeElem.style.border="0",this.fakeElem.style.padding="0",this.fakeElem.style.margin="0",this.fakeElem.style.position="absolute",this.fakeElem.style[e?"right":"left"]="-9999px";var n=window.pageYOffset||document.documentElement.scrollTop;this.fakeElem.style.top=n+"px",this.fakeElem.setAttribute("readonly",""),this.fakeElem.value=this.text,this.container.appendChild(this.fakeElem),this.selectedText=r()(this.fakeElem),this.copyText()}},{key:"removeFake",value:function(){this.fakeHandler&&(this.container.removeEventListener("click",this.fakeHandlerCallback),this.fakeHandler=null,this.fakeHandlerCallback=null),this.fakeElem&&(this.container.removeChild(this.fakeElem),this.fakeElem=null)}},{key:"selectTarget",value:function(){this.selectedText=r()(this.target),this.copyText()}},{key:"copyText",value:function(){var e=void 0;try{e=document.execCommand(this.action)}catch(t){e=!1}this.handleResult(e)}},{key:"handleResult",value:function(t){this.emitter.emit(t?"success":"error",{action:this.action,text:this.selectedText,trigger:this.trigger,clearSelection:this.clearSelection.bind(this)})}},{key:"clearSelection",value:function(){this.trigger&&this.trigger.focus(),document.activeElement.blur(),window.getSelection().removeAllRanges()}},{key:"destroy",value:function(){this.removeFake()}},{key:"action",set:function(t){var e=0<arguments.length&&void 0!==t?t:"copy";if(this._action=e,"copy"!==this._action&&"cut"!==this._action)throw new Error('Invalid "action" value, use either "copy" or "cut"')},get:function(){return this._action}},{key:"target",set:function(t){if(void 0!==t){if(!t||"object"!==(void 0===t?"undefined":i(t))||1!==t.nodeType)throw new Error('Invalid "target" value, use a valid Element');if("copy"===this.action&&t.hasAttribute("disabled"))throw new Error('Invalid "target" attribute. Please use "readonly" instead of "disabled" attribute');if("cut"===this.action&&(t.hasAttribute("readonly")||t.hasAttribute("disabled")))throw new Error('Invalid "target" attribute. You can\'t cut text from elements with "readonly" or "disabled" attributes');this._target=t}},get:function(){return this._target}}]),c),u=n(1),s=n.n(u),f=n(2),d=n.n(f),h="function"==typeof Symbol&&"symbol"==typeof Symbol.iterator?function(t){return typeof t}:function(t){return t&&"function"==typeof Symbol&&t.constructor===Symbol&&t!==Symbol.prototype?"symbol":typeof t},p=function(t,e,n){return e&&y(t.prototype,e),n&&y(t,n),t};function y(t,e){for(var n=0;n<e.length;n++){var o=e[n];o.enumerable=o.enumerable||!1,o.configurable=!0,"value"in o&&(o.writable=!0),Object.defineProperty(t,o.key,o)}}var m=(function(t,e){if("function"!=typeof e&&null!==e)throw new TypeError("Super expression must either be null or a function, not "+typeof e);t.prototype=Object.create(e&&e.prototype,{constructor:{value:t,enumerable:!1,writable:!0,configurable:!0}}),e&&(Object.setPrototypeOf?Object.setPrototypeOf(t,e):t.__proto__=e)}(v,s.a),p(v,[{key:"resolveOptions",value:function(t){var e=0<arguments.length&&void 0!==t?t:{};this.action="function"==typeof e.action?e.action:this.defaultAction,this.target="function"==typeof e.target?e.target:this.defaultTarget,this.text="function"==typeof e.text?e.text:this.defaultText,this.container="object"===h(e.container)?e.container:document.body}},{key:"listenClick",value:function(t){var e=this;this.listener=d()(t,"click",function(t){return e.onClick(t)})}},{key:"onClick",value:function(t){var e=t.delegateTarget||t.currentTarget;this.clipboardAction&&(this.clipboardAction=null),this.clipboardAction=new l({action:this.action(e),target:this.target(e),text:this.text(e),container:this.container,trigger:e,emitter:this})}},{key:"defaultAction",value:function(t){return b("action",t)}},{key:"defaultTarget",value:function(t){var e=b("target",t);if(e)return document.querySelector(e)}},{key:"defaultText",value:function(t){return b("text",t)}},{key:"destroy",value:function(){this.listener.destroy(),this.clipboardAction&&(this.clipboardAction.destroy(),this.clipboardAction=null)}}],[{key:"isSupported",value:function(t){var e=0<arguments.length&&void 0!==t?t:["copy","cut"],n="string"==typeof e?[e]:e,o=!!document.queryCommandSupported;return n.forEach(function(t){o=o&&!!document.queryCommandSupported(t)}),o}}]),v);function v(t,e){!function(t,e){if(!(t instanceof e))throw new TypeError("Cannot call a class as a function")}(this,v);var n=function(t,e){if(!t)throw new ReferenceError("this hasn't been initialised - super() hasn't been called");return!e||"object"!=typeof e&&"function"!=typeof e?t:e}(this,(v.__proto__||Object.getPrototypeOf(v)).call(this));return n.resolveOptions(e),n.listenClick(t),n}function b(t,e){var n="data-clipboard-"+t;if(e.hasAttribute(n))return e.getAttribute(n)}e.default=m}],r.c=o,r.d=function(t,e,n){r.o(t,e)||Object.defineProperty(t,e,{enumerable:!0,get:n})},r.r=function(t){"undefined"!=typeof Symbol&&Symbol.toStringTag&&Object.defineProperty(t,Symbol.toStringTag,{value:"Module"}),Object.defineProperty(t,"__esModule",{value:!0})},r.t=function(e,t){if(1&t&&(e=r(e)),8&t)return e;if(4&t&&"object"==typeof e&&e&&e.__esModule)return e;var n=Object.create(null);if(r.r(n),Object.defineProperty(n,"default",{enumerable:!0,value:e}),2&t&&"string"!=typeof e)for(var o in e)r.d(n,o,function(t){return e[t]}.bind(null,o));return n},r.n=function(t){var e=t&&t.__esModule?function(){return t.default}:function(){return t};return r.d(e,"a",e),e},r.o=function(t,e){return Object.prototype.hasOwnProperty.call(t,e)},r.p="",r(r.s=6).default;function r(t){if(o[t])return o[t].exports;var e=o[t]={i:t,l:!1,exports:{}};return n[t].call(e.exports,e,e.exports,r),e.l=!0,e.exports}var n,o});
+},{}],"node_modules/vue-clipboard2/vue-clipboard.js":[function(require,module,exports) {
+var define;
+var Clipboard = require('clipboard/dist/clipboard.min.js') // FIXME: workaround for browserify
+
+var VueClipboardConfig = {
+  autoSetContainer: false,
+  appendToBody: true // This fixes IE, see #50
+}
+
+var VueClipboard = {
+  install: function (Vue) {
+    Vue.prototype.$clipboardConfig = VueClipboardConfig
+    Vue.prototype.$copyText = function (text, container) {
+      return new Promise(function (resolve, reject) {
+        var fakeElement = document.createElement('button')
+        var clipboard = new Clipboard(fakeElement, {
+          text: function () { return text },
+          action: function () { return 'copy' },
+          container: typeof container === 'object' ? container : document.body
+        })
+        clipboard.on('success', function (e) {
+          clipboard.destroy()
+          resolve(e)
+        })
+        clipboard.on('error', function (e) {
+          clipboard.destroy()
+          reject(e)
+        })
+        if (VueClipboardConfig.appendToBody) document.body.appendChild(fakeElement)
+        fakeElement.click()
+        if (VueClipboardConfig.appendToBody) document.body.removeChild(fakeElement)
+      })
+    }
+
+    Vue.directive('clipboard', {
+      bind: function (el, binding, vnode) {
+        if (binding.arg === 'success') {
+          el._vClipboard_success = binding.value
+        } else if (binding.arg === 'error') {
+          el._vClipboard_error = binding.value
+        } else {
+          var clipboard = new Clipboard(el, {
+            text: function () { return binding.value },
+            action: function () { return binding.arg === 'cut' ? 'cut' : 'copy' },
+            container: VueClipboardConfig.autoSetContainer ? el : undefined
+          })
+          clipboard.on('success', function (e) {
+            var callback = el._vClipboard_success
+            callback && callback(e)
+          })
+          clipboard.on('error', function (e) {
+            var callback = el._vClipboard_error
+            callback && callback(e)
+          })
+          el._vClipboard = clipboard
+        }
+      },
+      update: function (el, binding) {
+        if (binding.arg === 'success') {
+          el._vClipboard_success = binding.value
+        } else if (binding.arg === 'error') {
+          el._vClipboard_error = binding.value
+        } else {
+          el._vClipboard.text = function () { return binding.value }
+          el._vClipboard.action = function () { return binding.arg === 'cut' ? 'cut' : 'copy' }
+        }
+      },
+      unbind: function (el, binding) {
+        if (binding.arg === 'success') {
+          delete el._vClipboard_success
+        } else if (binding.arg === 'error') {
+          delete el._vClipboard_error
+        } else {
+          el._vClipboard.destroy()
+          delete el._vClipboard
+        }
+      }
+    })
+  },
+  config: VueClipboardConfig
+}
+
+if (typeof exports === 'object') {
+  module.exports = VueClipboard
+} else if (typeof define === 'function' && define.amd) {
+  define([], function () {
+    return VueClipboard
+  })
+}
+
+},{"clipboard/dist/clipboard.min.js":"node_modules/clipboard/dist/clipboard.min.js"}],"app.js":[function(require,module,exports) {
 "use strict";
 
 var _vue = _interopRequireDefault(require("vue"));
@@ -52931,18 +53431,27 @@ require("vuetify/dist/vuetify.min.css");
 
 var _vuetify = _interopRequireDefault(require("vuetify"));
 
+var _vueClipboard = _interopRequireDefault(require("vue-clipboard2"));
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 _vue.default.use(_vuetify.default);
 
+_vue.default.use(_vueClipboard.default);
+
+_vue.default.config.ignoredElements = ["lottie-player"];
 new _vue.default({
   el: "#app",
   render: function render(h) {
     return h(_App.default);
   },
-  vuetify: new _vuetify.default()
+  vuetify: new _vuetify.default({
+    theme: {
+      dark: localStorage.getItem('darkModeEnabled') ? true : false
+    }
+  })
 });
-},{"vue":"node_modules/vue/dist/vue.runtime.esm.js","./src/App.vue":"src/App.vue","vuetify/dist/vuetify.min.css":"node_modules/vuetify/dist/vuetify.min.css","vuetify":"node_modules/vuetify/dist/vuetify.js"}],"../../AppData/Roaming/npm/node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
+},{"vue":"node_modules/vue/dist/vue.runtime.esm.js","./src/App.vue":"src/App.vue","vuetify/dist/vuetify.min.css":"node_modules/vuetify/dist/vuetify.min.css","vuetify":"node_modules/vuetify/dist/vuetify.js","vue-clipboard2":"node_modules/vue-clipboard2/vue-clipboard.js"}],"node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 var OldModule = module.bundle.Module;
@@ -52970,7 +53479,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "55711" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "15403" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
@@ -53146,5 +53655,5 @@ function hmrAcceptRun(bundle, id) {
     return true;
   }
 }
-},{}]},{},["../../AppData/Roaming/npm/node_modules/parcel-bundler/src/builtins/hmr-runtime.js","app.js"], null)
-//# sourceMappingURL=di/app.c328ef1a.js.map
+},{}]},{},["node_modules/parcel-bundler/src/builtins/hmr-runtime.js","app.js"], null)
+//# sourceMappingURL=/app.c328ef1a.js.map
