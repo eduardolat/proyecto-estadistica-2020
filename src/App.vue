@@ -1,29 +1,102 @@
 <template>
   <v-app>
-    <v-container>
+    <v-container class="pt-8 pb-15">
+      <lottie-player
+        class="mx-auto mb-3"
+        src="https://assets7.lottiefiles.com/packages/lf20_fBCpuQ.json"
+        background="transparent"
+        speed="1"
+        style="width: 200px; height: 200px;"
+        loop
+        autoplay
+      ></lottie-player>
+
+      <h1 class="text-center mx-auto mb-4">Calculadora estadística</h1>
+      <p class="text-center mx-auto mb-6">
+        Ingresa el set de datos en el campo que se encuentra a continuación, se
+        limpiaran, se ordenaran, se calculará la frecuencia absoluta, frecuencia
+        relativa y frecuencia acumulada, se dibujará un histograma para los
+        datos ademas de calcular múltiples medidas de tendencia central.
+      </p>
       <v-textarea
         outlined
-        label="Ingrese los números, separados por una coma, un espacio o un salto de linea"
+        name="raw-data"
+        label="Ingresa los números, separados por una coma, un espacio o un salto de linea"
         v-model="rawData"
+        autofocus
       ></v-textarea>
-      <span>
-        <b>Datos limpios</b>
-        <br />
-        {{ parsedDataArray }}
-        <br />
-        <b>Datos ordenados</b>
-        <br />
-        {{ sortedDataArray }}
-        <br />
+
+      <v-row>
+        <v-col
+          cols="12"
+          md="6"
+          v-if="parsedDataArray.length > 0"
+          class="animate__animated animate__fadeInUp"
+        >
+          <b
+            >Datos limpios - {{ parsedDataArray.length }} números encontrados</b
+          >
+
+          <v-btn
+            small
+            type="button"
+            color="primary"
+            v-clipboard:copy="parsedDataArray.join('\n')"
+            v-clipboard:success="onCopy"
+            v-clipboard:error="onError"
+          >
+            Copiar&nbsp;<i class="fas fa-copy"></i>
+          </v-btn>
+          <v-textarea
+            class="mt-2"
+            name="parsed-data"
+            outlined
+            readonly
+            :value="parsedDataArray.join('\n')"
+          ></v-textarea>
+        </v-col>
+
+        <v-col
+          cols="12"
+          md="6"
+          v-if="sortedDataArray.length > 0"
+          class="animate__animated animate__fadeInUp"
+        >
+          <b>
+            Datos ordenados - {{ sortedDataArray.length }} números encontrados
+          </b>
+
+          <v-btn
+            small
+            type="button"
+            color="primary"
+            v-clipboard:copy="sortedDataArray.join('\n')"
+            v-clipboard:success="onCopy"
+            v-clipboard:error="onError"
+          >
+            Copiar&nbsp;<i class="fas fa-copy"></i>
+          </v-btn>
+          <v-textarea
+            class="mt-2"
+            name="ordered-data"
+            outlined
+            readonly
+            :value="sortedDataArray.join('\n')"
+          ></v-textarea>
+        </v-col>
+      </v-row>
+
+      <div
+        v-if="fullStatistics.length > 0"
+        class="animate__animated animate__fadeInUp"
+      >
         <b>Todos los datos</b>
-        <br />
         <div v-for="number in fullStatistics" :key="number.number">
           {{ number }}
         </div>
-      </span>
-      <br />&nbsp; <br />&nbsp; <br />&nbsp; <br />&nbsp;
+      </div>
     </v-container>
-    <v-footer absolute>
+    <v-footer fixed>
       <span class="mx-auto text-center">
         &copy; {{ new Date().getFullYear() }}.
         <span v-html="currentFooterHTML"></span>
@@ -67,6 +140,16 @@ export default {
       } else {
         this.currentFooterMessage = nextMessage;
       }
+    },
+    onCopy: function(e) {
+      Swal.fire("Texto copiado al portapapeles", "", "success");
+    },
+    onError: function(e) {
+      Swal.fire(
+        "Ocurrió un error inesperado al intentar copiar el texto",
+        "",
+        "error"
+      );
     },
   },
   computed: {
