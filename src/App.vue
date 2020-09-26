@@ -7,7 +7,7 @@
           src="./chart-lottie.json"
           background="transparent"
           speed="1"
-          style="width: 200px; height: 200px;"
+          style="width: 200px; height: 200px"
           loop
           autoplay
         ></lottie-player>
@@ -124,6 +124,24 @@
         </div>
 
         <div
+          v-if="sortedDataArray.length > 0"
+          class="animate__animated animate__fadeInUp mt-10"
+        >
+          <h2>Medidas de tendencia central</h2>
+          <v-data-table
+            :headers="[
+              { text: 'Moda aritmética', value: 'arithmeticMode' },
+              { text: 'Media aritmética', value: 'arithmeticMean' },
+              { text: 'Mediana aritmética', value: 'arithmeticMedian' },
+            ]"
+            :items="measuresOfCentralTendency"
+            class="elevation-1 mt-2"
+            hide-default-footer
+            disable-sort
+          ></v-data-table>
+        </div>
+
+        <div
           v-show="sortedDataArray.length > 0"
           class="animate__animated animate__fadeInUp mt-10"
         >
@@ -132,18 +150,7 @@
         </div>
       </v-container>
     </v-main>
-    <v-footer fixed>
-      <span class="mx-auto text-center">
-        &copy; {{ new Date().getFullYear() }}.
-        <span v-html="currentFooterHTML"></span>
-        <a
-          target="_blank"
-          href="https://github.com/eduardodevop/proyecto-estadistica-2020"
-        >
-          <i class="fab fa-github"></i>
-        </a>
-      </span>
-    </v-footer>
+    <Footer></Footer>
   </v-app>
 </template>
 
@@ -154,37 +161,27 @@ import {
   absoluteFrecuency,
   totalData,
   relativeFrecuency,
+  arithmeticMean,
+  arithmeticMedian,
+  arithmeticMode,
 } from "./ts/statistics.ts";
 
-define;
+import Footer from "./components/common/Footer.vue";
+
 export default {
   name: "app",
   data() {
     return {
       rawData: "",
-      footerMessages: [
-        "Hecho con el 💛 por Luis, Hugo y Fernan.",
-        "Hecho con 😴 en la pandemia 🦠.",
-        "Hecho con ☕ en Chimaltenango.",
-      ],
-      currentFooterMessage: 0,
       chart: "",
       darkMode: localStorage.getItem("darkModeEnabled") ? true : false,
     };
   },
   methods: {
-    nextFooterMessage() {
-      let nextMessage = this.currentFooterMessage + 1;
-      if (nextMessage > this.footerMessages.length - 1) {
-        this.currentFooterMessage = 0;
-      } else {
-        this.currentFooterMessage = nextMessage;
-      }
-    },
-    onCopy: function(e) {
+    onCopy: function (e) {
       Swal.fire("Texto copiado al portapapeles", "", "success");
     },
-    onError: function(e) {
+    onError: function (e) {
       Swal.fire(
         "Ocurrió un error inesperado al intentar copiar el texto",
         "",
@@ -218,13 +215,6 @@ export default {
     },
   },
   computed: {
-    currentFooterHTML() {
-      return `
-        <span class="animate__animated animate__fadeIn">${
-          this.footerMessages[this.currentFooterMessage]
-        }</span>
-      `;
-    },
     parsedDataArray() {
       return cleanDataset(this.rawData);
     },
@@ -261,9 +251,18 @@ export default {
 
       return statistics;
     },
+    measuresOfCentralTendency() {
+      return [
+        {
+          arithmeticMean: arithmeticMean(this.rawData),
+          arithmeticMedian: arithmeticMedian(this.rawData),
+          arithmeticMode: arithmeticMode(this.rawData),
+        },
+      ];
+    },
   },
   watch: {
-    darkMode: function(status) {
+    darkMode: function (status) {
       if (status === true) {
         localStorage.setItem("darkModeEnabled", JSON.stringify(true));
         this.$vuetify.theme.dark = true;
@@ -272,7 +271,7 @@ export default {
         this.$vuetify.theme.dark = false;
       }
     },
-    sortedDataArray: function(n, old) {
+    sortedDataArray: function (n, old) {
       if (n == old) {
         return;
       }
@@ -299,13 +298,11 @@ export default {
       this.chart.update();
     },
   },
-  created() {
-    setInterval(() => {
-      this.nextFooterMessage();
-    }, 5000);
-  },
   mounted() {
     this.createHistogramaChart();
+  },
+  components: {
+    Footer,
   },
 };
 </script>
